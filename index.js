@@ -22,42 +22,25 @@ app.get('/', (req, res) => res.send('Bot WhatsApp attivo. Vai su /qr per vedere 
 
 app.get('/qr', (req, res) => {
     if (!qrCodeImage) {
-        return res.send(`
-            <html>
-                <body style="background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;">
-                    <h1 style="color:white;font-family:sans-serif;text-align:center;">
-                        QR non ancora generato<br><br>
-                        Aggiorna questa pagina tra 10 secondi
-                    </h1>
-                </body>
-            </html>
-        `);
+        return res.send(`<html><body style="background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><h1 style="color:white;font-family:sans-serif;text-align:center;">QR non ancora generato<br><br>Aggiorna questa pagina tra 10 secondi</h1></body></html>`);
     }
-    res.send(`
-        <html>
-            <body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111;margin:0;">
-                <div style="text-align:center;">
-                    <h2 style="color:white;font-family:sans-serif;">Scansiona SUBITO con WhatsApp</h2>
-                    <img src="${qrCodeImage}" style="width:300px;height:300px;border:5px solid white;" />
-                    <p style="color:#888;font-family:sans-serif;">Il QR scade in 20 secondi. Se non va, aggiorna la pagina.</p>
-                </div>
-            </body>
-        </html>
-    `);
+    res.send(`<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111;margin:0;"><div style="text-align:center;"><h2 style="color:white;font-family:sans-serif;">Scansiona SUBITO con WhatsApp</h2><img src="${qrCodeImage}" style="width:300px;height:300px;border:5px solid white;" /><p style="color:#888;font-family:sans-serif;">Il QR scade in 20 secondi. Se non va, aggiorna la pagina.</p></div></body></html>`);
 });
 
 app.listen(PORT, () => console.log(`Server attivo su porta ${PORT}`));
 
+const giochi = {};
+
 async function startBot() {
     console.log('1. Avvio bot...');
-    
+
     try {
         console.log('2. Carico Chromium...');
         const executablePath = await chromium.executablePath();
         console.log('3. Chromium path:', executablePath);
 
         const client = new Client({
-            authStrategy: new LocalAuth({ 
+            authStrategy: new LocalAuth({
                 dataPath: './wwebjs_auth',
                 clientId: 'mio-bot-render-1'
             }),
@@ -65,7 +48,7 @@ async function startBot() {
                 headless: chromium.headless,
                 executablePath: executablePath,
                 args: [
-                    ...chromium.args,
+                  ...chromium.args,
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
@@ -92,6 +75,116 @@ async function startBot() {
 
         client.on('disconnected', (reason) => {
             console.log('DISCONNESSO:', reason);
+        });
+
+        client.on('message', async msg => {
+            const chat = await msg.getChat();
+            const testo = msg.body.toLowerCase().trim();
+            const contatto = await msg.getContact();
+            const nome = contatto.pushname || contatto.name || 'Player';
+
+            console.log(`Messaggio da ${nome}: ${msg.body}`);
+
+            // HELP
+            if (testo === '!help' || testo === '.help' || testo === '!comandi') {
+                chat.sendMessage(`🌆 *CITY BOT - COMANDI* 🌆
+
+*!ping* - Controllo se sono vivo
+*!bandiera* - Indovina la bandiera
+*!gaymetro* - Scopri chi è gay 🌈
+*!ciao* o *.ciao* - Saluta tutti
+
+Scrivi il comando per usarlo!`);
+            }
+
+            // PING
+            if (testo === '!ping') {
+                msg.reply('pong bro 🔥 Sono online!');
+            }
+
+            // CIAO
+            if (testo === '!ciao' || testo === '.ciao') {
+                chat.sendMessage(`Ciao a tutti da City Bot! 🌆`);
+            }
+
+            // GIOCO BANDIERE CON 30+ BANDIERE
+            if (testo === '!bandiera' || testo === '.bandiera') {
+                const bandiere = [
+                    { nome: 'italia', emoji: '🇮🇹' },
+                    { nome: 'francia', emoji: '🇫🇷' },
+                    { nome: 'germania', emoji: '🇩🇪' },
+                    { nome: 'spagna', emoji: '🇪🇸' },
+                    { nome: 'portogallo', emoji: '🇵🇹' },
+                    { nome: 'brasile', emoji: '🇧🇷' },
+                    { nome: 'argentina', emoji: '🇦🇷' },
+                    { nome: 'giappone', emoji: '🇯🇵' },
+                    { nome: 'cina', emoji: '🇨🇳' },
+                    { nome: 'usa', emoji: '🇺🇸' },
+                    { nome: 'canada', emoji: '🇨🇦' },
+                    { nome: 'messico', emoji: '🇲🇽' },
+                    { nome: 'regno unito', emoji: '🇬🇧' },
+                    { nome: 'inghilterra', emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+                    { nome: 'irlanda', emoji: '🇮🇪' },
+                    { nome: 'olanda', emoji: '🇳🇱' },
+                    { nome: 'belgio', emoji: '🇧🇪' },
+                    { nome: 'svizzera', emoji: '🇨🇭' },
+                    { nome: 'austria', emoji: '🇦🇹' },
+                    { nome: 'svezia', emoji: '🇸🇪' },
+                    { nome: 'norvegia', emoji: '🇳🇴' },
+                    { nome: 'danimarca', emoji: '🇩🇰' },
+                    { nome: 'finlandia', emoji: '🇫🇮' },
+                    { nome: 'polonia', emoji: '🇵🇱' },
+                    { nome: 'ucraina', emoji: '🇺🇦' },
+                    { nome: 'russia', emoji: '🇷🇺' },
+                    { nome: 'turchia', emoji: '🇹🇷' },
+                    { nome: 'grecia', emoji: '🇬🇷' },
+                    { nome: 'australia', emoji: '🇦🇺' },
+                    { nome: 'india', emoji: '🇮🇳' },
+                    { nome: 'corea del sud', emoji: '🇰🇷' },
+                    { nome: 'egitto', emoji: '🇪🇬' }
+                ];
+                const scelta = bandiere[Math.floor(Math.random() * bandiere.length)];
+                giochi[chat.id._serialized] = { tipo: 'bandiera', soluzione: scelta.nome };
+
+                chat.sendMessage(`🏁 *INDOVINA LA BANDIERA* 🏁
+
+Di che nazione è questa bandiera?
+${scelta.emoji}
+
+Scrivi il nome della nazione per rispondere!`);
+            }
+
+            // Risposta gioco bandiera
+            if (giochi[chat.id._serialized]?.tipo === 'bandiera') {
+                if (testo === giochi[chat.id._serialized].soluzione) {
+                    chat.sendMessage(`🎉 *CORRETTO!* 🎉
+
+${nome} ha indovinato! Era ${giochi[chat.id._serialized].soluzione.toUpperCase()}.
+Scrivi *!bandiera* per un'altra!`);
+                    delete giochi[chat.id._serialized];
+                }
+            }
+
+            // GAYMETRO CON PERCENTUALE RANDOM 0-100
+            if (testo === '!gaymetro' || testo === '.gaymetro') {
+                if (!chat.isGroup) {
+                    return chat.sendMessage('Il!gaymetro funziona solo nei gruppi bro 😂');
+                }
+
+                const partecipanti = chat.participants;
+                const vittima = partecipanti[Math.floor(Math.random() * partecipanti.length)];
+                const percentuale = Math.floor(Math.random() * 101); // da 0 a 100
+                const contattoVittima = await client.getContactById(vittima.id._serialized);
+                const tag = `@${vittima.id.user}`;
+
+                chat.sendMessage(`🌈 *GAYMETRO ATTIVATO* 🌈
+
+La gaymetro ha analizzato il gruppo...
+
+${tag} è gay al *${percentuale}%* 🏳️‍🌈`, {
+                    mentions: [contattoVittima]
+                });
+            }
         });
 
         console.log('6. Inizializzo client...');
