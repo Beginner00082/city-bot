@@ -9,9 +9,8 @@ process.on('uncaughtException', (error) => {
 });
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const qrcode = require('qrcode'); // CAMBIATO LIBRERIA
 
-// Carico chromium in modo asincrono per fixare l'errore ESM su Render
 let chromium;
 (async () => {
     chromium = await import('@sparticuz/chromium');
@@ -37,14 +36,20 @@ async function startBot() {
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
-                    '--single-process'
+                    '--single-process',
+                    '--no-zygote',
+                    '--disable-extensions',
+                    '--disable-software-rasterizer'
                 ]
             }
         });
 
-        client.on('qr', (qr) => {
-            console.log('4. Client ready! Scan this QR:');
-            qrcode.generate(qr, { small: true });
+        client.on('qr', async (qr) => {
+            console.log('4. Client ready! QR generato.');
+            // Genera un link con l'immagine del QR
+            const qrImageUrl = await qrcode.toDataURL(qr);
+            console.log('APRI QUESTO LINK PER VEDERE IL QR:');
+            console.log(qrImageUrl); // QUESTO È UN LINK LUNGHISSIMO
         });
 
         client.on('ready', () => {
@@ -66,4 +71,4 @@ async function startBot() {
         console.error('ERRORE FATALE NEL TRY:', error);
         process.exit(1);
     }
-                      }
+                    }
