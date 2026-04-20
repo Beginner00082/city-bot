@@ -9,7 +9,6 @@ process.on('uncaughtException', (error) => {
 });
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode'); // CAMBIATO LIBRERIA
 
 let chromium;
 (async () => {
@@ -39,17 +38,17 @@ async function startBot() {
                     '--single-process',
                     '--no-zygote',
                     '--disable-extensions',
-                    '--disable-software-rasterizer'
+                    '--disable-software-rasterizer',
+                    '--disable-features=site-per-process'
                 ]
             }
         });
 
-        client.on('qr', async (qr) => {
-            console.log('4. Client ready! QR generato.');
-            // Genera un link con l'immagine del QR
-            const qrImageUrl = await qrcode.toDataURL(qr);
-            console.log('APRI QUESTO LINK PER VEDERE IL QR:');
-            console.log(qrImageUrl); // QUESTO È UN LINK LUNGHISSIMO
+        client.on('qr', (qr) => {
+            console.log('4. Client ready! QR grezzo:');
+            console.log('COPIA_QR_INIZIO');
+            console.log(qr);
+            console.log('COPIA_QR_FINE');
         });
 
         client.on('ready', () => {
@@ -71,4 +70,4 @@ async function startBot() {
         console.error('ERRORE FATALE NEL TRY:', error);
         process.exit(1);
     }
-                    }
+    }
