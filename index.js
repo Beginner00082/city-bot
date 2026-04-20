@@ -17,14 +17,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 let qrCodeImage = null;
+let botPronto = false;
 
 app.get('/', (req, res) => res.send('Bot WhatsApp attivo. Vai su /qr per vedere il QR'));
 
 app.get('/qr', (req, res) => {
+    if (botPronto) {
+        return res.send(`<html><body style="background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><h1 style="color:#0f0;font-family:sans-serif;text-align:center;">BOT GIÀ CONNESSO ✅<br><br>Vai su WhatsApp e usa!help</h1></body></html>`);
+    }
     if (!qrCodeImage) {
         return res.send(`<html><body style="background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><h1 style="color:white;font-family:sans-serif;text-align:center;">Generando QR...<br><br>Aggiorna tra 5 secondi</h1></body></html>`);
     }
-    res.send(`<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111;margin:0;"><div style="text-align:center;"><h2 style="color:white;font-family:sans-serif;">Scansiona SUBITO</h2><img src="${qrCodeImage}" style="width:300px;height:300px;border:5px solid white;" /><p style="color:#888;font-family:sans-serif;">Scade in 20 sec. Aggiorna se non va.</p></div></body></html>`);
+    res.send(`<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111;margin:0;"><div style="text-align:center;"><h2 style="color:white;font-family:sans-serif;">Scansiona SUBITO</h2><img src="${qrCodeImage}" style="width:300px;height:300px;border:5px solid white;" /><p style="color:#888;font-family:sans-serif;">Scade in 20 sec.</p></div></body></html>`);
 });
 
 app.listen(PORT, () => console.log(`Server attivo su porta ${PORT}`));
@@ -47,7 +51,7 @@ async function startBot() {
             puppeteer: {
                 headless: chromium.headless,
                 executablePath: executablePath,
-                args: chromium.args // uso solo quelli di default, sono i più leggeri
+                args: chromium.args
             },
             webVersionCache: {
                 type: 'remote',
@@ -56,6 +60,7 @@ async function startBot() {
         });
 
         client.on('qr', async (qr) => {
+            if (botPronto) return;
             console.log('4. QR generato! Vai su /qr per vederlo');
             qrCodeImage = await QRCode.toDataURL(qr);
         });
@@ -70,15 +75,18 @@ async function startBot() {
 
         client.on('ready', () => {
             console.log('5. Bot connesso e pronto!');
+            botPronto = true;
             qrCodeImage = null;
         });
 
         client.on('auth_failure', msg => {
             console.error('AUTH ERROR:', msg);
+            botPronto = false;
         });
 
         client.on('disconnected', (reason) => {
             console.log('DISCONNESSO:', reason);
+            botPronto = false;
         });
 
         client.on('message', async msg => {
