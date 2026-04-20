@@ -8,6 +8,13 @@ process.on('uncaughtException', (error) => {
     process.exit(1);
 });
 
+// AGGIUNGI QUESTE 5 RIGHE PER NON FARLO MORIRE
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+app.get('/', (req, res) => res.send('Bot WhatsApp attivo'));
+app.listen(PORT, () => console.log(`Server fake attivo su porta ${PORT}`));
+
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
 let chromium;
@@ -70,4 +77,4 @@ async function startBot() {
         console.error('ERRORE FATALE NEL TRY:', error);
         process.exit(1);
     }
-    }
+              }
