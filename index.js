@@ -9,20 +9,24 @@ process.on('uncaughtException', (error) => {
 });
 
 const express = require('express');
+const QRCode = require('qrcode');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-let qrCodeData = 'QR non ancora generato. Aggiorna tra 30 secondi.';
+let qrCodeImage = null;
 
 app.get('/', (req, res) => res.send('Bot WhatsApp attivo. Vai su /qr per vedere il QR'));
 
 app.get('/qr', (req, res) => {
+    if (!qrCodeImage) {
+        return res.send('<h1 style="color:white;font-family:sans-serif;text-align:center;margin-top:50px;">QR non ancora generato. Aggiorna tra 10 secondi.</h1>');
+    }
     res.send(`
         <html>
             <body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111;margin:0;">
                 <div style="text-align:center;">
                     <h2 style="color:white;font-family:sans-serif;">Scansiona SUBITO con WhatsApp</h2>
-                    <img src="${qrCodeData}" style="width:300px;height:300px;border:5px solid white;" />
+                    <img src="${qrCodeImage}" style="width:300px;height:300px;border:5px solid white;" />
                     <p style="color:#888;font-family:sans-serif;">Il QR scade in 20 secondi. Aggiorna se non funziona.</p>
                 </div>
             </body>
@@ -30,7 +34,7 @@ app.get('/qr', (req, res) => {
     `);
 });
 
-app.listen(PORT, () => console.log(`Server fake attivo su porta ${PORT}`));
+app.listen(PORT, () => console.log(`Server attivo su porta ${PORT}`));
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
@@ -51,7 +55,7 @@ async function startBot() {
         const client = new Client({
             authStrategy: new LocalAuth({ 
                 dataPath: './wwebjs_auth',
-                clientId: 'mio-bot-render-1' // Questo evita i ban di WhatsApp
+                clientId: 'mio-bot-render-1'
             }),
             puppeteer: {
                 headless: chromium.default.headless,
@@ -71,14 +75,14 @@ async function startBot() {
             }
         });
 
-        client.on('qr', (qr) => {
+        client.on('qr', async (qr) => {
             console.log('4. QR generato! Vai su /qr per vederlo');
-            qrCodeData = qr;
+            qrCodeImage = await QRCode.toDataURL(qr); // Questa riga converte il testo in immagine
         });
 
         client.on('ready', () => {
             console.log('5. Bot connesso e pronto!');
-            qrCodeData = 'Bot connesso! QR non più necessario.';
+            qrCodeImage = null;
         });
 
         client.on('auth_failure', msg => {
@@ -96,4 +100,4 @@ async function startBot() {
         console.error('ERRORE FATALE NEL TRY:', error);
         process.exit(1);
     }
-            }
+ }
