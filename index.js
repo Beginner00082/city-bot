@@ -1,3 +1,13 @@
+process.on('unhandledRejection', (error) => {
+    console.error('UNHANDLED ERROR:', error);
+    process.exit(1);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('UNCAUGHT ERROR:', error);
+    process.exit(1);
+});
+
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const chromium = require('@sparticuz/chromium');
@@ -20,9 +30,9 @@ async function startBot() {
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
-                    '--disable-gpu'
-                ],
-                defaultViewport: chromium.defaultViewport
+                    '--disable-gpu',
+                    '--single-process'
+                ]
             }
         });
 
@@ -35,19 +45,11 @@ async function startBot() {
             console.log('5. Bot connesso e pronto!');
         });
 
-        client.on('auth_failure', msg => {
-            console.error('AUTH ERROR:', msg);
-        });
-
-        client.on('disconnected', (reason) => {
-            console.log('DISCONNESSO:', reason);
-        });
-
         console.log('6. Inizializzo client...');
         await client.initialize();
 
     } catch (error) {
-        console.error('ERRORE FATALE:', error);
+        console.error('ERRORE FATALE NEL TRY:', error);
         process.exit(1);
     }
 }
