@@ -10,6 +10,9 @@ process.on('uncaughtException', (error) => {
 
 const express = require('express');
 const QRCode = require('qrcode');
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const chromium = require('@sparticuz/chromium');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -45,20 +48,12 @@ app.get('/qr', (req, res) => {
 
 app.listen(PORT, () => console.log(`Server attivo su porta ${PORT}`));
 
-const { Client, LocalAuth } = require('whatsapp-web.js');
-
-let chromium;
-(async () => {
-    chromium = await import('@sparticuz/chromium');
-    startBot();
-})();
-
 async function startBot() {
     console.log('1. Avvio bot...');
     
     try {
         console.log('2. Carico Chromium...');
-        const executablePath = await chromium.default.executablePath();
+        const executablePath = await chromium.executablePath();
         console.log('3. Chromium path:', executablePath);
 
         const client = new Client({
@@ -67,19 +62,16 @@ async function startBot() {
                 clientId: 'mio-bot-render-1'
             }),
             puppeteer: {
-                headless: chromium.default.headless,
+                headless: chromium.headless,
                 executablePath: executablePath,
                 args: [
-                    ...chromium.default.args,
+                    ...chromium.args,
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
                     '--single-process',
-                    '--no-zygote',
-                    '--disable-extensions',
-                    '--disable-software-rasterizer',
-                    '--disable-features=site-per-process'
+                    '--no-zygote'
                 ]
             }
         });
@@ -109,4 +101,6 @@ async function startBot() {
         console.error('ERRORE FATALE NEL TRY:', error);
         process.exit(1);
     }
-            }
+}
+
+startBot();
