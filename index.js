@@ -14,8 +14,14 @@ async function startBot() {
             authStrategy: new LocalAuth({ dataPath: './wwebjs_auth' }),
             puppeteer: {
                 headless: chromium.headless,
-                args: chromium.args,
                 executablePath: executablePath,
+                args: [
+                    ...chromium.args,
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu'
+                ],
                 defaultViewport: chromium.defaultViewport
             }
         });
