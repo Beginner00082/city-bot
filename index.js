@@ -22,9 +22,9 @@ app.get('/', (req, res) => res.send('Bot WhatsApp attivo. Vai su /qr per vedere 
 
 app.get('/qr', (req, res) => {
     if (!qrCodeImage) {
-        return res.send(`<html><body style="background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><h1 style="color:white;font-family:sans-serif;text-align:center;">QR non ancora generato<br><br>Aggiorna questa pagina tra 10 secondi</h1></body></html>`);
+        return res.send(`<html><body style="background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;"><h1 style="color:white;font-family:sans-serif;text-align:center;">Generando QR...<br><br>Aggiorna tra 5 secondi</h1></body></html>`);
     }
-    res.send(`<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111;margin:0;"><div style="text-align:center;"><h2 style="color:white;font-family:sans-serif;">Scansiona SUBITO con WhatsApp</h2><img src="${qrCodeImage}" style="width:300px;height:300px;border:5px solid white;" /><p style="color:#888;font-family:sans-serif;">Il QR scade in 20 secondi. Se non va, aggiorna la pagina.</p></div></body></html>`);
+    res.send(`<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111;margin:0;"><div style="text-align:center;"><h2 style="color:white;font-family:sans-serif;">Scansiona SUBITO</h2><img src="${qrCodeImage}" style="width:300px;height:300px;border:5px solid white;" /><p style="color:#888;font-family:sans-serif;">Scade in 20 sec. Aggiorna se non va.</p></div></body></html>`);
 });
 
 app.listen(PORT, () => console.log(`Server attivo su porta ${PORT}`));
@@ -42,22 +42,12 @@ async function startBot() {
         const client = new Client({
             authStrategy: new LocalAuth({
                 dataPath: './wwebjs_auth',
-                clientId: 'mio-bot-render-1'
+                clientId: 'city-bot-1'
             }),
             puppeteer: {
                 headless: chromium.headless,
                 executablePath: executablePath,
-                args: [
-                  ...chromium.args,
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu',
-                    '--single-process',
-                    '--no-zygote',
-                    '--disable-extensions',
-                    '--disable-background-networking'
-                ]
+                args: chromium.args // uso solo quelli di default, sono i più leggeri
             },
             webVersionCache: {
                 type: 'remote',
