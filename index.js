@@ -19,7 +19,16 @@ app.get('/', (req, res) => res.send('Bot WhatsApp attivo. Vai su /qr per vedere 
 
 app.get('/qr', (req, res) => {
     if (!qrCodeImage) {
-        return res.send('<h1 style="color:white;font-family:sans-serif;text-align:center;margin-top:50px;">QR non ancora generato. Aggiorna tra 10 secondi.</h1>');
+        return res.send(`
+            <html>
+                <body style="background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;">
+                    <h1 style="color:white;font-family:sans-serif;text-align:center;">
+                        QR non ancora generato<br><br>
+                        Aggiorna questa pagina tra 10 secondi
+                    </h1>
+                </body>
+            </html>
+        `);
     }
     res.send(`
         <html>
@@ -27,7 +36,7 @@ app.get('/qr', (req, res) => {
                 <div style="text-align:center;">
                     <h2 style="color:white;font-family:sans-serif;">Scansiona SUBITO con WhatsApp</h2>
                     <img src="${qrCodeImage}" style="width:300px;height:300px;border:5px solid white;" />
-                    <p style="color:#888;font-family:sans-serif;">Il QR scade in 20 secondi. Aggiorna se non funziona.</p>
+                    <p style="color:#888;font-family:sans-serif;">Il QR scade in 20 secondi. Se non va, aggiorna la pagina.</p>
                 </div>
             </body>
         </html>
@@ -77,7 +86,7 @@ async function startBot() {
 
         client.on('qr', async (qr) => {
             console.log('4. QR generato! Vai su /qr per vederlo');
-            qrCodeImage = await QRCode.toDataURL(qr); // Questa riga converte il testo in immagine
+            qrCodeImage = await QRCode.toDataURL(qr);
         });
 
         client.on('ready', () => {
@@ -100,4 +109,4 @@ async function startBot() {
         console.error('ERRORE FATALE NEL TRY:', error);
         process.exit(1);
     }
- }
+            }
