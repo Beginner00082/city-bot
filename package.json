@@ -1,17 +1,16 @@
 {
-  "name": "wwebjs-bot",
+  "name": "whatsapp-bot",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "whatsapp-web.js": "1.27.0",
-    "qrcode-terminal": "0.12.0",
-    "puppeteer-core": "22.6.5",
-    "@sparticuz/chromium": "119.0.0"
+    "whatsapp-web.js": "^1.23.0",
+    "@sparticuz/chromium": "^119.0.0",
+    "qrcode": "^1.5.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.0.0"
   }
 }
