@@ -54,14 +54,28 @@ async function startBot() {
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
                     '--single-process',
-                    '--no-zygote'
+                    '--no-zygote',
+                    '--disable-extensions',
+                    '--disable-background-networking'
                 ]
+            },
+            webVersionCache: {
+                type: 'remote',
+                remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
             }
         });
 
         client.on('qr', async (qr) => {
             console.log('4. QR generato! Vai su /qr per vederlo');
             qrCodeImage = await QRCode.toDataURL(qr);
+        });
+
+        client.on('loading_screen', (percent, message) => {
+            console.log('CARICAMENTO:', percent, message);
+        });
+
+        client.on('authenticated', () => {
+            console.log('4.5 AUTENTICATO! Ora aspetto il ready...');
         });
 
         client.on('ready', () => {
@@ -79,14 +93,15 @@ async function startBot() {
 
         client.on('message', async msg => {
             const chat = await msg.getChat();
-            const testo = msg.body.toLowerCase().trim();
+            const testoRaw = msg.body;
+            const testo = testoRaw.toLowerCase();
             const contatto = await msg.getContact();
             const nome = contatto.pushname || contatto.name || 'Player';
 
-            console.log(`Messaggio da ${nome}: ${msg.body}`);
+            console.log(`[DEBUG] Ricevuto: "${testoRaw}" | Pulito: "${testo}" | Da: ${nome}`);
 
-            // HELP
             if (testo === '!help' || testo === '.help' || testo === '!comandi') {
+                console.log('[DEBUG] Entro in HELP');
                 chat.sendMessage(`🌆 *CITY BOT - COMANDI* 🌆
 
 *!ping* - Controllo se sono vivo
@@ -97,51 +112,35 @@ async function startBot() {
 Scrivi il comando per usarlo!`);
             }
 
-            // PING
             if (testo === '!ping') {
+                console.log('[DEBUG] Entro in PING');
                 msg.reply('pong bro 🔥 Sono online!');
             }
 
-            // CIAO
             if (testo === '!ciao' || testo === '.ciao') {
+                console.log('[DEBUG] Entro in CIAO');
                 chat.sendMessage(`Ciao a tutti da City Bot! 🌆`);
             }
 
-            // GIOCO BANDIERE CON 30+ BANDIERE
             if (testo === '!bandiera' || testo === '.bandiera') {
+                console.log('[DEBUG] Entro in BANDIERA');
                 const bandiere = [
-                    { nome: 'italia', emoji: '🇮🇹' },
-                    { nome: 'francia', emoji: '🇫🇷' },
-                    { nome: 'germania', emoji: '🇩🇪' },
-                    { nome: 'spagna', emoji: '🇪🇸' },
-                    { nome: 'portogallo', emoji: '🇵🇹' },
-                    { nome: 'brasile', emoji: '🇧🇷' },
-                    { nome: 'argentina', emoji: '🇦🇷' },
-                    { nome: 'giappone', emoji: '🇯🇵' },
-                    { nome: 'cina', emoji: '🇨🇳' },
-                    { nome: 'usa', emoji: '🇺🇸' },
-                    { nome: 'canada', emoji: '🇨🇦' },
-                    { nome: 'messico', emoji: '🇲🇽' },
-                    { nome: 'regno unito', emoji: '🇬🇧' },
-                    { nome: 'inghilterra', emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-                    { nome: 'irlanda', emoji: '🇮🇪' },
-                    { nome: 'olanda', emoji: '🇳🇱' },
-                    { nome: 'belgio', emoji: '🇧🇪' },
-                    { nome: 'svizzera', emoji: '🇨🇭' },
-                    { nome: 'austria', emoji: '🇦🇹' },
-                    { nome: 'svezia', emoji: '🇸🇪' },
-                    { nome: 'norvegia', emoji: '🇳🇴' },
-                    { nome: 'danimarca', emoji: '🇩🇰' },
-                    { nome: 'finlandia', emoji: '🇫🇮' },
-                    { nome: 'polonia', emoji: '🇵🇱' },
-                    { nome: 'ucraina', emoji: '🇺🇦' },
-                    { nome: 'russia', emoji: '🇷🇺' },
-                    { nome: 'turchia', emoji: '🇹🇷' },
-                    { nome: 'grecia', emoji: '🇬🇷' },
-                    { nome: 'australia', emoji: '🇦🇺' },
-                    { nome: 'india', emoji: '🇮🇳' },
-                    { nome: 'corea del sud', emoji: '🇰🇷' },
-                    { nome: 'egitto', emoji: '🇪🇬' }
+                    { nome: 'italia', emoji: '🇮🇹' }, { nome: 'francia', emoji: '🇫🇷' },
+                    { nome: 'germania', emoji: '🇩🇪' }, { nome: 'spagna', emoji: '🇪🇸' },
+                    { nome: 'portogallo', emoji: '🇵🇹' }, { nome: 'brasile', emoji: '🇧🇷' },
+                    { nome: 'argentina', emoji: '🇦🇷' }, { nome: 'giappone', emoji: '🇯🇵' },
+                    { nome: 'cina', emoji: '🇨🇳' }, { nome: 'usa', emoji: '🇺🇸' },
+                    { nome: 'canada', emoji: '🇨🇦' }, { nome: 'messico', emoji: '🇲🇽' },
+                    { nome: 'regno unito', emoji: '🇬🇧' }, { nome: 'inghilterra', emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+                    { nome: 'irlanda', emoji: '🇮🇪' }, { nome: 'olanda', emoji: '🇳🇱' },
+                    { nome: 'belgio', emoji: '🇧🇪' }, { nome: 'svizzera', emoji: '🇨🇭' },
+                    { nome: 'austria', emoji: '🇦🇹' }, { nome: 'svezia', emoji: '🇸🇪' },
+                    { nome: 'norvegia', emoji: '🇳🇴' }, { nome: 'danimarca', emoji: '🇩🇰' },
+                    { nome: 'finlandia', emoji: '🇫🇮' }, { nome: 'polonia', emoji: '🇵🇱' },
+                    { nome: 'ucraina', emoji: '🇺🇦' }, { nome: 'russia', emoji: '🇷🇺' },
+                    { nome: 'turchia', emoji: '🇹🇷' }, { nome: 'grecia', emoji: '🇬🇷' },
+                    { nome: 'australia', emoji: '🇦🇺' }, { nome: 'india', emoji: '🇮🇳' },
+                    { nome: 'corea del sud', emoji: '🇰🇷' }, { nome: 'egitto', emoji: '🇪🇬' }
                 ];
                 const scelta = bandiere[Math.floor(Math.random() * bandiere.length)];
                 giochi[chat.id._serialized] = { tipo: 'bandiera', soluzione: scelta.nome };
@@ -154,9 +153,9 @@ ${scelta.emoji}
 Scrivi il nome della nazione per rispondere!`);
             }
 
-            // Risposta gioco bandiera
             if (giochi[chat.id._serialized]?.tipo === 'bandiera') {
                 if (testo === giochi[chat.id._serialized].soluzione) {
+                    console.log('[DEBUG] BANDIERA CORRETTA');
                     chat.sendMessage(`🎉 *CORRETTO!* 🎉
 
 ${nome} ha indovinato! Era ${giochi[chat.id._serialized].soluzione.toUpperCase()}.
@@ -165,15 +164,15 @@ Scrivi *!bandiera* per un'altra!`);
                 }
             }
 
-            // GAYMETRO CON PERCENTUALE RANDOM 0-100
             if (testo === '!gaymetro' || testo === '.gaymetro') {
+                console.log('[DEBUG] Entro in GAYMETRO');
                 if (!chat.isGroup) {
                     return chat.sendMessage('Il!gaymetro funziona solo nei gruppi bro 😂');
                 }
 
                 const partecipanti = chat.participants;
                 const vittima = partecipanti[Math.floor(Math.random() * partecipanti.length)];
-                const percentuale = Math.floor(Math.random() * 101); // da 0 a 100
+                const percentuale = Math.floor(Math.random() * 101);
                 const contattoVittima = await client.getContactById(vittima.id._serialized);
                 const tag = `@${vittima.id.user}`;
 
